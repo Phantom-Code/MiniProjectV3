@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MiniProjectV3</string>
+    <string name="title_activity_display">MapActivity</string>
+</resources>
