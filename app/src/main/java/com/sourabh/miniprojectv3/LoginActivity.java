@@ -48,6 +48,8 @@ public class LoginActivity extends AppCompatActivity {
                             email.setText("");
                             password.setText("");
                             startActivity(new Intent(LoginActivity.this,DisplayActivity.class));
+                        }else{
+                            Toast.makeText(getApplicationContext(),"sign in Failed",Toast.LENGTH_SHORT).show();
                         }
                     }
                 });

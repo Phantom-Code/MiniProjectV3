@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:layout_marginTop="50dp"
-    tools:context="com.example.rohan.transportdisplay.LoginActivity">
+    tools:context="com.sourabh.miniprojectv3.LoginActivity">
 
 
     <EditText
