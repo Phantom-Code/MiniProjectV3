@@ -1,6 +1,7 @@
 package com.sourabh.miniprojectv3;
 
 import android.Manifest;
+import android.app.NotificationManager;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -13,6 +14,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
@@ -32,6 +35,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ThrowOnExtraProperties;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -42,6 +46,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         GoogleMap.OnMarkerDragListener,
         LocationListener {
     LocationManager locationManager;
+    private final int NOTIFICATION_ID=001;
     private static final String TAG = DisplayActivity.class.getSimpleName();
     private HashMap<String, Marker> geofenceMarkers = new HashMap<>();
     private LocationRequest locationRequest;
@@ -58,6 +63,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
     float[] results =new float[10];
     int flg=0;
     private HashMap<String, Marker> userMarkers=new HashMap();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +83,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
     public void onMapReady(GoogleMap googleMap) {
         // Authenticate with Firebase when the Google map is loaded
         mMap = googleMap;
-        mMap.setMaxZoomPreference(16);
+        mMap.setMaxZoomPreference(18);
         /*  loginToFirebase();
          */
         calculate();
@@ -186,10 +192,6 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
 
     }
     private void setGeofenceMarkers(DataSnapshot dataSnapshot) {
-        // When a location update is received, put or update
-        // its value in mMarkers, which contains all the markers
-        // for locations received, so that we can build the
-        // boundaries required to show them all on the map at once
         String key = dataSnapshot.getKey();
         HashMap<String, Object> value = (HashMap<String, Object>) dataSnapshot.getValue();
         geofenceLat = Double.parseDouble(value.get("latitude").toString());
@@ -203,7 +205,6 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         } else {
             geofenceMarkers.get(key).setPosition(location);
         }
-        mMap.clear();
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for (Marker marker : geofenceMarkers.values()) {
             builder.include(marker.getPosition());
@@ -254,30 +255,24 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         if(results[0]>100 & flg<1 && results[0]<200)
         {
             flg=1;
-            sendmessage(results[0]);
+          //  displayNotification(results[0]);
         }
+        if(results[0]>100)
+            displayNotification(5);
+
 
     }
 
 
-    public  void sendmessage(float result){
-        //Toast.makeText(this,"message send successfully",Toast.LENGTH_LONG).show();
-        String number= "8669173297";
-        String mess="device is out of zone";
-        if(number==null || number.equals("")||mess==null|| mess.equals("")){
-            Toast.makeText(this,"field can't be empty",Toast.LENGTH_LONG).show();
-
-        }
-        else        {
-            if(TextUtils.isDigitsOnly(number)){
-
-                Toast.makeText(this,"message send successfully" +number,Toast.LENGTH_LONG).show();
-            }
-            else {
-                Toast.makeText(this,"please enter integer only",Toast.LENGTH_LONG).show();
-            }
-        }
-
+    public  void displayNotification(float result){
+        Toast.makeText(getApplicationContext(),"Distance "+result,Toast.LENGTH_LONG);
+        NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(this,"GeofenceNotifier")
+                .setContentTitle("Geofence")
+                .setContentText("Entered in  Geofence")
+                .setSmallIcon(R.drawable.notification_icon)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        NotificationManagerCompat notificationManagerCompat=NotificationManagerCompat.from(this);
+        notificationManagerCompat.notify(1,mBuilder.build());
     }
 
     @Override
@@ -299,26 +294,9 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
     public void onProviderDisabled(String s) {
 
     }
-/*
-    public void getDirection() {
-        if (listpoints.size() > 2)
-            listpoints.clear();
-        if (listpoints.size() == 2) {
-            String url = getRequestURL(listpoints.get(0),listpoints.get(1));
-        }
-    }
 
-    private String getRequestURL(LatLng origin, LatLng dest) {
-        String str_org="origin"+origin.latitude+origin.longitude;
-        String str_dest="Destination"+dest.latitude+origin.longitude;
-        String sensor="sensor=false";
-        String mode="mode=driving";
-        String param=str_org+"&"+str_dest+"&"+sensor+"&"+mode;
-        String output="json";
-        String url="https://maps.googleapis.com/maps/directions/"+output+"?"+param;
-        return url;
 
-    }
-*/
+
+
 
 }
