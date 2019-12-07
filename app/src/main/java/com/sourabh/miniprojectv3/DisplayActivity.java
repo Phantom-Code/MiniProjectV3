@@ -1,12 +1,16 @@
 package com.sourabh.miniprojectv3;
 
 import android.Manifest;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -41,21 +45,12 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class DisplayActivity extends FragmentActivity implements OnMapReadyCallback,
-        GoogleMap.OnMarkerClickListener,
-        GoogleMap.OnMarkerDragListener,
-        LocationListener {
-    LocationManager locationManager;
-    private final int NOTIFICATION_ID=001;
+public class DisplayActivity extends FragmentActivity implements OnMapReadyCallback{
+
+    private static final String PRIMARY_CHANNEL_ID = "primary_notification_channel";
     private static final String TAG = DisplayActivity.class.getSimpleName();
     private HashMap<String, Marker> geofenceMarkers = new HashMap<>();
-    private LocationRequest locationRequest;
     private GoogleMap mMap;
-    TextView locationText;
-    public static final int REQUEST_LOCATION_CODE=99;
-    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 1;
-    private Location lastLocation;
-    private Marker currentLocationMarker;
     double end_latitude,end_longitude;
     double deviceLat, deviceLong;
     double geofenceLat,geofenceLong;
@@ -63,6 +58,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
     float[] results =new float[10];
     int flg=0;
     private HashMap<String, Marker> userMarkers=new HashMap();
+    private PendingIntent pendingIntent;
 
 
     @Override
@@ -76,47 +72,22 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
 
     }
 
-
-
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        // Authenticate with Firebase when the Google map is loaded
+
         mMap = googleMap;
         mMap.setMaxZoomPreference(18);
-        /*  loginToFirebase();
-         */
-        calculate();
+
         getDeviceLocations();
         getUpdateFromGeofences();
         if(ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
         }
-        mMap.setOnMarkerDragListener(this);
-        mMap.setOnMarkerClickListener(this);
+
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
     }
 
-
-   /* private void loginToFirebase() {
-        String email = getString(R.string.firebase_email);
-        String password = getString(R.string.firebase_password);
-        // Authenticate with Firebase and subscribe to updates
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(
-                email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    getDeviceLocations();
-                    Log.d(TAG, "firebase auth success");
-                } else {
-                    Log.d(TAG, "firebase auth failed");
-                }
-            }
-        });
-    }
-*/
 
     private void getUpdateFromGeofences() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Accounts/username/Geo_Locations");
@@ -146,6 +117,8 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
     }
+
+
     private void getDeviceLocations() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Accounts/username");
         ref.addValueEventListener(new ValueEventListener() {
@@ -165,6 +138,9 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
             }
         });
     }
+
+
+
     private void setUserDeviceMarkers(Object dataSnapshot) {
         UserNode userNode=(UserNode)dataSnapshot;
         String key="";
@@ -174,9 +150,9 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
             key=device.getDeviceName();
         }
 
-        Toast.makeText(this,"Co-ordinates: "+ deviceLat +" , "+ deviceLong,Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this,"Co-ordinates: "+ deviceLat +" , "+ deviceLong,Toast.LENGTH_SHORT).show();
         LatLng location = new LatLng(deviceLat, deviceLong);
-        /*  listpoints.add(location);*/
+
         if (!userMarkers.containsKey(key)) {
             userMarkers.put(key, mMap.addMarker(new MarkerOptions().title(key).position(location)));
         } else {
@@ -187,18 +163,19 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
             builder.include(marker.getPosition());
         }
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 300));
-        int flg=0;
+         flg=0;
         calculate();
 
     }
     private void setGeofenceMarkers(DataSnapshot dataSnapshot) {
+
         String key = dataSnapshot.getKey();
         HashMap<String, Object> value = (HashMap<String, Object>) dataSnapshot.getValue();
         geofenceLat = Double.parseDouble(value.get("latitude").toString());
         geofenceLong = Double.parseDouble(value.get("longitude").toString());
-        Toast.makeText(this,"Co-ordinates: "+ geofenceLat +" , "+ geofenceLong,Toast.LENGTH_SHORT).show();
+        //shows  geofence coordinates retrieved from database
+       // Toast.makeText(this,"Co-ordinates: "+ geofenceLat +" , "+ geofenceLong,Toast.LENGTH_SHORT).show();
         LatLng location = new LatLng(geofenceLat, geofenceLong);
-        /*  listpoints.add(location);*/
         if (!geofenceMarkers.containsKey(key)) {
             geofenceMarkers.put(key, mMap.addMarker(new MarkerOptions().title("Geofence: "+key+"").position(location).
                     icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))));
@@ -209,7 +186,7 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
         for (Marker marker : geofenceMarkers.values()) {
             builder.include(marker.getPosition());
             CircleOptions circleOptions=new CircleOptions().center(marker.getPosition())
-                    .radius(199).fillColor(0x220000ff)
+                    .radius(99).fillColor(0x220000ff)
                     .strokeWidth(5.0f);
             mMap.addCircle(circleOptions);
         }
@@ -220,83 +197,62 @@ public class DisplayActivity extends FragmentActivity implements OnMapReadyCallb
 
     }
 
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        marker.setDraggable(true);
-        return false;
-    }
-
-    @Override
-    public void onMarkerDragStart(Marker marker) {
-
-    }
-
-    @Override
-    public void onMarkerDrag(Marker marker) {
-
-    }
-
-    @Override
-    public void onMarkerDragEnd(Marker marker) {
-        end_latitude = marker.getPosition().latitude;
-        end_longitude = marker.getPosition().longitude;
-        Toast.makeText(this,"Marker drag finished",Toast.LENGTH_SHORT).show();
-        calculate();
-
-    }
     public void calculate()
     {
+        String message="";
         Location.distanceBetween(deviceLat, deviceLong,geofenceLat,geofenceLong,results);
         double y=0.0;
         y=results[0];
-        Toast.makeText(this,"Results: "+y,Toast.LENGTH_SHORT).show();
 
 
-        if(results[0]>100 & flg<1 && results[0]<200)
+
+        if(results[0]>0 && flg<1 && results[0]<100)
         {
             flg=1;
-          //  displayNotification(results[0]);
+            message="Entered in Geofence";
+            createNotificationChannel(message);
+            Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
         }
-        if(results[0]>100)
-            displayNotification(5);
+        if(results[0]>100){
+            flg=1;
+            message="Out of Geofence";
+            createNotificationChannel(message);
+            Toast.makeText(getApplicationContext(),message,Toast.LENGTH_LONG).show();
+        }
 
 
     }
 
 
-    public  void displayNotification(float result){
-        Toast.makeText(getApplicationContext(),"Distance "+result,Toast.LENGTH_LONG);
-        NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(this,"GeofenceNotifier")
-                .setContentTitle("Geofence")
-                .setContentText("Entered in  Geofence")
-                .setSmallIcon(R.drawable.notification_icon)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        NotificationManagerCompat notificationManagerCompat=NotificationManagerCompat.from(this);
-        notificationManagerCompat.notify(1,mBuilder.build());
+
+    private void createNotificationChannel(String message) {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Notification";
+            String description = "First Notification";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("Geofence", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,"Geofence")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentText("APP")
+                .setContentTitle(message)
+                .setAutoCancel(true)
+
+                .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if(notificationManager!=null)
+            notificationManager.notify(001, notificationBuilder.build());
     }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-    }
-
-    @Override
-    public void onStatusChanged(String s, int i, Bundle bundle) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String s) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String s) {
-
-    }
-
-
-
 
 
 }
