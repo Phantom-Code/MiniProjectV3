@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Vehicle Tracker</string>
     <string name="title_activity_display">MapActivity</string>
+    <string name="name">Name</string>
+    <string name="add">Add Job</string>
+    <string name="confirm">Confirm</string>
+    <string name="back">Back</string>
+    <string name="enter_name_place">Enter Name Place</string>
 </resources>

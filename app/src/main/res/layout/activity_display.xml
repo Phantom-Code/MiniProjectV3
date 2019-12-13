@@ -12,8 +12,32 @@
         android:layout_height="match_parent"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="0dp"
+        android:layout_marginStart="-14dp"
+        android:layout_marginTop="-10dp"
         tools:context=".DisplayActivity" />
+
+<!--    <Button-->
+<!--        android:id="@+id/addGeofence"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_alignParentStart="true"-->
+<!--        android:layout_alignParentTop="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_alignParentBottom="true"-->
+<!--        android:layout_marginStart="164dp"-->
+<!--        android:layout_marginTop="565dp"-->
+<!--        android:layout_marginEnd="154dp"-->
+<!--        android:layout_marginBottom="1dp"-->
+<!--        android:text="add Job" />-->
+
+    <Button
+        android:id="@+id/addGeofence"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="179dp"
+        android:layout_marginBottom="23dp"
+        android:text="Add Job" />
 
 </RelativeLayout>

@@ -13,10 +13,10 @@
         android:id="@+id/email"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
         android:layout_marginTop="20dp"
-        android:inputType="textPersonName"
-        android:hint="Enter Email id" />
+        android:ems="10"
+        android:hint="Enter Email id"
+        android:inputType="textPersonName" />
 
     <EditText
         android:id="@+id/password"

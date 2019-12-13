@@ -38,7 +38,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Email = email.getText().toString();
                 Pass = password.getText().toString();
-
+                if(!Email.isEmpty() || !Pass.isEmpty()){
                 mauth.signInWithEmailAndPassword(Email,Pass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -53,6 +53,9 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     }
                 });
+                }else{
+                    Toast.makeText(getApplicationContext(),"Email cannot be Empty",Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -75,6 +78,7 @@ public class LoginActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(),"sign up successful",Toast.LENGTH_SHORT).show();
                             email.setText("");
                             password.setText("");
+
                         }
                         else
                             Toast.makeText(getApplicationContext(),"Error",Toast.LENGTH_SHORT).show();

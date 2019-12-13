@@ -19,9 +19,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".JobActivity"
+            android:label="Job"></activity>
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyARR2pBbISrziETejJ94JRjMotGpydIN6U"/>
+        <uses-library android:name="com.google.android.maps" />
     </application>
 
 </manifest>
